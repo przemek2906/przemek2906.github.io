@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demo bezpieczeństwa telefonu</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="badge">TRYB SZKOLENIOWY • DEMO LEGALNE</div>
+      <h1>Aktualizacja zabezpieczeń telefonu</h1>
+      <p class="lead">To kontrolowana strona demonstracyjna. Pokazuje, jak przeglądarka pyta o zgody: aparat, mikrofon, lokalizację i powiadomienia. Dane nie są wysyłane, zapisywane ani analizowane.</p>
+      <button id="startBtn" class="primary">Rozpocznij weryfikację</button>
+      <p class="tiny">Używaj wyłącznie na własnym urządzeniu lub za zgodą uczestników szkolenia.</p>
+    </section>
+
+    <section id="panel" class="panel hidden">
+      <div class="status">
+        <span class="dot"></span>
+        <span id="statusText">Gotowe do demonstracji</span>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h2>1. Aparat i mikrofon</h2>
+          <p>Prawdziwy monit przeglądarki o zgodę. Podgląd działa tylko lokalnie na tym ekranie.</p>
+          <button id="mediaBtn">Poproś o zgodę</button>
+          <button id="stopMediaBtn" class="secondary">Zatrzymaj podgląd</button>
+          <video id="preview" autoplay playsinline muted></video>
+          <div id="mediaResult" class="result">Nie uruchomiono.</div>
+        </article>
+
+        <article class="card">
+          <h2>2. Lokalizacja</h2>
+          <p>Pokazuje, że jedno kliknięcie może ujawnić przybliżone położenie urządzenia.</p>
+          <button id="geoBtn">Poproś o lokalizację</button>
+          <div id="geoResult" class="result">Nie uruchomiono.</div>
+        </article>
+
+        <article class="card">
+          <h2>3. Powiadomienia</h2>
+          <p>Strony mogą prosić o powiadomienia i później wyświetlać komunikaty w przeglądarce.</p>
+          <button id="notifBtn">Poproś o zgodę</button>
+          <div id="notifResult" class="result">Nie uruchomiono.</div>
+        </article>
+
+        <article class="card">
+          <h2>4. Plik / zdjęcie</h2>
+          <p>Użytkownik sam może wskazać plik. Demo pokazuje nazwę i rozmiar, bez wysyłania na serwer.</p>
+          <label class="fileLabel">Wybierz przykładowe zdjęcie
+            <input id="fileInput" type="file" accept="image/*" />
+          </label>
+          <img id="localImage" alt="Podgląd lokalny" />
+          <div id="fileResult" class="result">Nie wybrano pliku.</div>
+        </article>
+      </div>
+
+      <section class="reveal">
+        <h2>To była symulacja początku ataku</h2>
+        <p>Nic nie zostało wysłane. Ale w prawdziwym ataku podobna strona mogłaby namawiać do instalacji aplikacji, podania hasła albo nadania groźnych uprawnień.</p>
+        <ul>
+          <li>Nie klikaj pod presją czasu.</li>
+          <li>Sprawdzaj adres strony.</li>
+          <li>Czytaj komunikaty o zgodach.</li>
+          <li>Zgłaszaj podejrzane linki do IT.</li>
+        </ul>
+      </section>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
