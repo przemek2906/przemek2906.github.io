@@ -71,7 +71,7 @@
           <h2>5. Zdjęcie i metadane EXIF/GPS</h2>
           <p>Wybierz zdjęcie z telefonu. Jeżeli zawiera GPS w metadanych EXIF, demo pokaże miejsce wykonania. Plik nie jest wysyłany — jest czytany lokalnie w przeglądarce.</p>
           <label class="fileLabel">Wybierz zdjęcie z telefonu
-            <input id="fileInput" type="file" accept="image/*" />
+            <input id="fileInput" type="file" accept="image/jpeg,image/jpg,image/heic,image/heif,image/*" />
           </label>
           <img id="localImage" alt="Podgląd lokalny" />
           <div id="fileResult" class="result">Nie wybrano pliku.</div>
@@ -91,6 +91,7 @@
       </section>
     </section>
   </main>
-  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+  <script src="app.js?v=exif-robust-20260529"></script>
 </body>
 </html>

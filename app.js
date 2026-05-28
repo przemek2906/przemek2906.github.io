@@ -237,13 +237,31 @@ function readIFD(view, tiffStart, ifdOffset, little) {
   }
   return result;
 }
+function normalizeRef(ref) {
+  return String(ref || '').trim().toUpperCase().replace(/\0/g, '');
+}
 function dmsToDecimal(dms, ref) {
   if (!Array.isArray(dms) || dms.length < 3) return null;
-  let dec = Number(dms[0]) + Number(dms[1]) / 60 + Number(dms[2]) / 3600;
-  if (ref === 'S' || ref === 'W') dec *= -1;
+  const deg = Number(dms[0]);
+  const min = Number(dms[1]);
+  const sec = Number(dms[2]);
+  if (![deg, min, sec].every(Number.isFinite)) return null;
+  // Gdy parser trafi na puste/źle odczytane tagi, często wychodzi 0,0.
+  // Nie traktujemy tego jako prawdziwej lokalizacji zdjęcia.
+  if (deg === 0 && min === 0 && sec === 0) return null;
+  let dec = deg + min / 60 + sec / 3600;
+  const r = normalizeRef(ref);
+  if (r === 'S' || r === 'W') dec *= -1;
   return dec;
 }
-async function parseExifGps(file) {
+function isValidGps(lat, lon) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return false;
+  // 0,0 to zwykle brak danych albo błąd parsera; na szkoleniu nie pokazujemy tego jako mapy.
+  if (Math.abs(lat) < 0.000001 && Math.abs(lon) < 0.000001) return false;
+  return true;
+}
+async function parseExifGpsLegacy(file) {
   const buffer = await file.arrayBuffer();
   const view = new DataView(buffer);
   if (view.byteLength < 4 || view.getUint16(0) !== 0xFFD8) return { error: 'To nie wygląda jak plik JPEG z EXIF.' };
@@ -282,6 +300,99 @@ async function parseExifGps(file) {
   return { error: 'Nie znaleziono metadanych EXIF w tym zdjęciu.' };
 }
 
+function normalizeExifDate(value) {
+  if (!value) return '';
+  try {
+    if (value instanceof Date && !isNaN(value.getTime())) return value.toLocaleString('pl-PL');
+    return String(value);
+  } catch (_) { return String(value); }
+}
+function pickFirstFinite(...vals) {
+  for (const v of vals) {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+function dmsArrayToDecimal(arr, ref) {
+  if (!Array.isArray(arr) || arr.length < 3) return null;
+  const deg = Number(arr[0]);
+  const min = Number(arr[1]);
+  const sec = Number(arr[2]);
+  if (![deg, min, sec].every(Number.isFinite)) return null;
+  if (deg === 0 && min === 0 && sec === 0) return null;
+  let dec = deg + min / 60 + sec / 3600;
+  const r = normalizeRef(ref);
+  if (r === 'S' || r === 'W') dec *= -1;
+  return dec;
+}
+async function parseExifGpsRobust(file) {
+  const meta = { make: '', model: '', dateTime: '', dateOriginal: '', gps: null, debug: [] };
+
+  // Główna metoda: exifr. Lepiej radzi sobie z EXIF z telefonów Samsung/Apple niż prosty parser szkoleniowy.
+  if (window.exifr) {
+    try {
+      const parsed = await exifr.parse(file, {
+        gps: true,
+        xmp: true,
+        tiff: true,
+        ifd0: true,
+        exif: true,
+        interop: true,
+        translateKeys: true,
+        translateValues: false,
+        reviveValues: true,
+        mergeOutput: true
+      });
+      if (parsed) {
+        meta.make = parsed.Make || parsed.make || '';
+        meta.model = parsed.Model || parsed.model || '';
+        meta.dateTime = normalizeExifDate(parsed.DateTime || parsed.ModifyDate || parsed.CreateDate || '');
+        meta.dateOriginal = normalizeExifDate(parsed.DateTimeOriginal || parsed.CreateDate || parsed.dateTimeOriginal || '');
+
+        // exifr często zwraca już gotowe pola latitude/longitude.
+        let lat = pickFirstFinite(parsed.latitude, parsed.Latitude, parsed.GPSLatitudeDecimal, parsed.GPSLatitude);
+        let lon = pickFirstFinite(parsed.longitude, parsed.Longitude, parsed.GPSLongitudeDecimal, parsed.GPSLongitude);
+
+        // W niektórych plikach GPSLatitude/GPSLongitude mogą przyjść jako tablice DMS.
+        if (lat === null) lat = dmsArrayToDecimal(parsed.GPSLatitude, parsed.GPSLatitudeRef);
+        if (lon === null) lon = dmsArrayToDecimal(parsed.GPSLongitude, parsed.GPSLongitudeRef);
+
+        // Czasem biblioteka podaje tablice i jednocześnie ref osobno.
+        if (Array.isArray(parsed.GPSLatitude)) lat = dmsArrayToDecimal(parsed.GPSLatitude, parsed.GPSLatitudeRef) ?? lat;
+        if (Array.isArray(parsed.GPSLongitude)) lon = dmsArrayToDecimal(parsed.GPSLongitude, parsed.GPSLongitudeRef) ?? lon;
+
+        if (lat !== null || lon !== null) {
+          meta.gps = {
+            lat,
+            lon,
+            latRef: parsed.GPSLatitudeRef || '',
+            lonRef: parsed.GPSLongitudeRef || '',
+            alt: parsed.GPSAltitude || parsed.altitude || '',
+            date: parsed.GPSDateStamp || '',
+            time: parsed.GPSTimeStamp || ''
+          };
+        }
+        meta.debug.push('Odczyt EXIF: exifr');
+        return meta;
+      }
+    } catch (e) {
+      meta.debug.push('exifr nie odczytał danych: ' + e.message);
+      // Lecimy fallbackiem, żeby demo działało też bez CDN.
+    }
+  } else {
+    meta.debug.push('Biblioteka exifr nie została załadowana — sprawdź internet/CDN albo użyj fallbacku.');
+  }
+
+  const legacy = await parseExifGpsLegacy(file);
+  if (legacy && !legacy.error) {
+    legacy.debug = (legacy.debug || []).concat(meta.debug, ['Odczyt EXIF: parser awaryjny']);
+    return legacy;
+  }
+  if (legacy && legacy.error) return { ...legacy, debug: meta.debug };
+  return { error: 'Nie udało się odczytać EXIF/GPS z pliku.', debug: meta.debug };
+}
+
 $('fileInput').addEventListener('change', async () => {
   const file = $('fileInput').files[0];
   if (!file) return;
@@ -290,7 +401,7 @@ $('fileInput').addEventListener('change', async () => {
   $('localImage').style.display = 'block';
   $('fileResult').textContent = `Wybrano lokalnie:\nNazwa: ${file.name}\nRozmiar: ${(file.size/1024).toFixed(1)} KB\nTyp: ${file.type || 'nieznany'}\n\nOdczyt metadanych EXIF/GPS...`;
   try {
-    const meta = await parseExifGps(file);
+    const meta = await parseExifGpsRobust(file);
     const rows = [
       `Wybrano lokalnie:`,
       `Nazwa: ${file.name}`,
@@ -300,20 +411,32 @@ $('fileInput').addEventListener('change', async () => {
       'Metadane EXIF:',
       line('Aparat/producent', meta.make || 'brak'),
       line('Model', meta.model || 'brak'),
-      line('Data zdjęcia', meta.dateOriginal || meta.dateTime || 'brak')
+      line('Data zdjęcia', meta.dateOriginal || meta.dateTime || 'brak'),
+      line('Silnik odczytu', (meta.debug && meta.debug.length) ? meta.debug.join(' | ') : 'exifr / fallback')
     ];
     if (meta.error) {
       rows.push('', meta.error, 'Wiele aplikacji usuwa EXIF albo telefon miał wyłączone zapisywanie lokalizacji zdjęć.');
       $('fileResult').textContent = rows.join('\n');
       return;
     }
-    if (meta.gps && typeof meta.gps.lat === 'number' && typeof meta.gps.lon === 'number') {
+    if (meta.gps && isValidGps(meta.gps.lat, meta.gps.lon)) {
       const lat = meta.gps.lat;
       const lon = meta.gps.lon;
       const maps = `https://www.google.com/maps?q=${lat},${lon}`;
       $('fileResult').innerHTML = rows.join('\n') + `\n\nGPS w zdjęciu:\nSzerokość: ${lat.toFixed(6)}\nDługość: ${lon.toFixed(6)}\n\n<a href="${maps}" target="_blank" rel="noopener">Pokaż miejsce wykonania zdjęcia na mapie</a>\n\nPlik nie został wysłany. Metadane odczytano lokalnie w przeglądarce.`;
     } else {
-      rows.push('', 'GPS w zdjęciu: brak', 'To dobrze z punktu widzenia prywatności. Telefon mógł mieć wyłączone tagowanie lokalizacji albo aplikacja usunęła EXIF.');
+      const gpsInfo = meta.gps ? 'GPS w zdjęciu: brak poprawnych współrzędnych' : 'GPS w zdjęciu: brak';
+      rows.push(
+        '',
+        gpsInfo,
+        'Nie pokazuję mapy, bo współrzędne są puste, usunięte albo wyglądają jak 0,0 — to nie jest wiarygodna lokalizacja.',
+        '',
+        'Najczęstsze przyczyny:',
+        '- zdjęcie wysłane przez komunikator lub skopiowane przez aplikację, która usuwa EXIF,',
+        '- w aparacie wyłączono tagowanie lokalizacji,',
+        '- zdjęcie jest zrzutem ekranu albo kopią po kompresji,',
+        '- przeglądarka/telefon przekazał obraz bez pełnych metadanych.'
+      );
       $('fileResult').textContent = rows.join('\n');
     }
   } catch (e) {
