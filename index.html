@@ -11,9 +11,9 @@
     <section class="hero">
       <div class="badge">TRYB SZKOLENIOWY • DEMO LEGALNE</div>
       <h1>Aktualizacja zabezpieczeń telefonu</h1>
-      <p class="lead">To kontrolowana strona demonstracyjna. Pokazuje, jak przeglądarka pyta o zgody: aparat, mikrofon, lokalizację i powiadomienia. Dane nie są wysyłane, zapisywane ani analizowane.</p>
+      <p class="lead">To kontrolowana strona demonstracyjna. Pokazuje, jak przeglądarka pyta o zgody: aparat, mikrofon, lokalizację, powiadomienia, wybór kontaktu oraz odczyt metadanych zdjęcia. Dane nie są wysyłane, zapisywane ani analizowane na serwerze.</p>
       <button id="startBtn" class="primary">Rozpocznij weryfikację</button>
-      <p class="tiny">Używaj wyłącznie na własnym urządzeniu lub za zgodą uczestników szkolenia.</p>
+      <p class="tiny">Używaj wyłącznie na własnym urządzeniu lub za zgodą uczestników szkolenia. Na telefonie strona musi być uruchomiona przez HTTPS, nie przez zwykłe HTTP z laptopa.</p>
     </section>
 
     <section id="panel" class="panel hidden">
@@ -22,19 +22,32 @@
         <span id="statusText">Gotowe do demonstracji</span>
       </div>
 
+      <div class="notice">
+        <strong>Ważne:</strong> demo nie ma backendu. Nie ma tu wysyłania haseł, kontaktów, lokalizacji ani zdjęć. Wszystko dzieje się lokalnie w przeglądarce użytkownika. Na projektorze używaj kontaktu testowego i zdjęcia demonstracyjnego.
+      </div>
+
       <div class="cards">
         <article class="card">
+          <h2>0. Diagnostyka telefonu</h2>
+          <p>Najpierw sprawdź, czy telefon widzi stronę jako bezpieczną i czy przeglądarka obsługuje zgody.</p>
+          <button id="diagBtn">Sprawdź urządzenie</button>
+          <div id="diagResult" class="result">Nie sprawdzono.</div>
+        </article>
+
+        <article class="card">
           <h2>1. Aparat i mikrofon</h2>
-          <p>Prawdziwy monit przeglądarki o zgodę. Podgląd działa tylko lokalnie na tym ekranie.</p>
-          <button id="mediaBtn">Poproś o zgodę</button>
+          <p>Prawdziwe monity przeglądarki o zgodę. Najpierw testuj osobno aparat, potem mikrofon. Podgląd działa tylko lokalnie na tym ekranie.</p>
+          <button id="cameraBtn">Poproś o aparat</button>
+          <button id="micBtn">Poproś o mikrofon</button>
+          <button id="mediaBtn">Aparat + mikrofon razem</button>
           <button id="stopMediaBtn" class="secondary">Zatrzymaj podgląd</button>
           <video id="preview" autoplay playsinline muted></video>
           <div id="mediaResult" class="result">Nie uruchomiono.</div>
         </article>
 
         <article class="card">
-          <h2>2. Lokalizacja</h2>
-          <p>Pokazuje, że jedno kliknięcie może ujawnić przybliżone położenie urządzenia.</p>
+          <h2>2. Lokalizacja urządzenia</h2>
+          <p>Pokazuje, że jedno kliknięcie może ujawnić przybliżone położenie telefonu.</p>
           <button id="geoBtn">Poproś o lokalizację</button>
           <div id="geoResult" class="result">Nie uruchomiono.</div>
         </article>
@@ -47,9 +60,17 @@
         </article>
 
         <article class="card">
-          <h2>4. Plik / zdjęcie</h2>
-          <p>Użytkownik sam może wskazać plik. Demo pokazuje nazwę i rozmiar, bez wysyłania na serwer.</p>
-          <label class="fileLabel">Wybierz przykładowe zdjęcie
+          <h2>4. Kontakt testowy</h2>
+          <p>Bezpieczny przykład: użytkownik sam wybiera kontakt z systemowego selektora. Strona nie ma dostępu do całej książki adresowej.</p>
+          <label class="checkLine"><input id="maskContacts" type="checkbox" checked /> Maskuj dane na projektorze</label>
+          <button id="contactBtn">Wybierz kontakt pokazowo</button>
+          <div id="contactResult" class="result">Nie uruchomiono. Najlepiej użyj kontaktu testowego, np. „TEST Cyber”.</div>
+        </article>
+
+        <article class="card">
+          <h2>5. Zdjęcie i metadane EXIF/GPS</h2>
+          <p>Wybierz zdjęcie z telefonu. Jeżeli zawiera GPS w metadanych EXIF, demo pokaże miejsce wykonania. Plik nie jest wysyłany — jest czytany lokalnie w przeglądarce.</p>
+          <label class="fileLabel">Wybierz zdjęcie z telefonu
             <input id="fileInput" type="file" accept="image/*" />
           </label>
           <img id="localImage" alt="Podgląd lokalny" />
@@ -64,6 +85,7 @@
           <li>Nie klikaj pod presją czasu.</li>
           <li>Sprawdzaj adres strony.</li>
           <li>Czytaj komunikaty o zgodach.</li>
+          <li>Nie pokazuj publicznie zdjęć z metadanymi lokalizacji.</li>
           <li>Zgłaszaj podejrzane linki do IT.</li>
         </ul>
       </section>
