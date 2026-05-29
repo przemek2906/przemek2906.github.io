@@ -1,97 +1,18 @@
-<!doctype html>
-<html lang="pl">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Demo bezpieczeństwa telefonu</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="app">
-    <section class="hero">
-      <div class="badge">TRYB SZKOLENIOWY • DEMO LEGALNE</div>
-      <h1>Aktualizacja zabezpieczeń telefonu</h1>
-      <p class="lead">To kontrolowana strona demonstracyjna. Pokazuje, jak przeglądarka pyta o zgody: aparat, mikrofon, lokalizację, powiadomienia, wybór kontaktu oraz odczyt metadanych zdjęcia. Dane nie są wysyłane, zapisywane ani analizowane na serwerze.</p>
-      <button id="startBtn" class="primary">Rozpocznij weryfikację</button>
-      <p class="tiny">Używaj wyłącznie na własnym urządzeniu lub za zgodą uczestników szkolenia. Na telefonie strona musi być uruchomiona przez HTTPS, nie przez zwykłe HTTP z laptopa.</p>
-    </section>
-
-    <section id="panel" class="panel hidden">
-      <div class="status">
-        <span class="dot"></span>
-        <span id="statusText">Gotowe do demonstracji</span>
-      </div>
-
-      <div class="notice">
-        <strong>Ważne:</strong> demo nie ma backendu. Nie ma tu wysyłania haseł, kontaktów, lokalizacji ani zdjęć. Wszystko dzieje się lokalnie w przeglądarce użytkownika. Na projektorze używaj kontaktu testowego i zdjęcia demonstracyjnego.
-      </div>
-
-      <div class="cards">
-        <article class="card">
-          <h2>0. Diagnostyka telefonu</h2>
-          <p>Najpierw sprawdź, czy telefon widzi stronę jako bezpieczną i czy przeglądarka obsługuje zgody.</p>
-          <button id="diagBtn">Sprawdź urządzenie</button>
-          <div id="diagResult" class="result">Nie sprawdzono.</div>
-        </article>
-
-        <article class="card">
-          <h2>1. Aparat i mikrofon</h2>
-          <p>Prawdziwe monity przeglądarki o zgodę. Najpierw testuj osobno aparat, potem mikrofon. Podgląd działa tylko lokalnie na tym ekranie.</p>
-          <button id="cameraBtn">Poproś o aparat</button>
-          <button id="micBtn">Poproś o mikrofon</button>
-          <button id="mediaBtn">Aparat + mikrofon razem</button>
-          <button id="stopMediaBtn" class="secondary">Zatrzymaj podgląd</button>
-          <video id="preview" autoplay playsinline muted></video>
-          <div id="mediaResult" class="result">Nie uruchomiono.</div>
-        </article>
-
-        <article class="card">
-          <h2>2. Lokalizacja urządzenia</h2>
-          <p>Pokazuje, że jedno kliknięcie może ujawnić przybliżone położenie telefonu.</p>
-          <button id="geoBtn">Poproś o lokalizację</button>
-          <div id="geoResult" class="result">Nie uruchomiono.</div>
-        </article>
-
-        <article class="card">
-          <h2>3. Powiadomienia</h2>
-          <p>Strony mogą prosić o powiadomienia i później wyświetlać komunikaty w przeglądarce.</p>
-          <button id="notifBtn">Poproś o zgodę</button>
-          <div id="notifResult" class="result">Nie uruchomiono.</div>
-        </article>
-
-        <article class="card">
-          <h2>4. Kontakt testowy</h2>
-          <p>Bezpieczny przykład: użytkownik sam wybiera kontakt z systemowego selektora. Strona nie ma dostępu do całej książki adresowej.</p>
-          <label class="checkLine"><input id="maskContacts" type="checkbox" checked /> Maskuj dane na projektorze</label>
-          <button id="contactBtn">Wybierz kontakt pokazowo</button>
-          <div id="contactResult" class="result">Nie uruchomiono. Najlepiej użyj kontaktu testowego, np. „TEST Cyber”.</div>
-        </article>
-
-        <article class="card">
-          <h2>5. Zdjęcie i metadane EXIF/GPS</h2>
-          <p>Wybierz zdjęcie z telefonu. Jeżeli zawiera GPS w metadanych EXIF, demo pokaże miejsce wykonania. Plik nie jest wysyłany — jest czytany lokalnie w przeglądarce.</p>
-          <label class="fileLabel">Wybierz zdjęcie z telefonu
-            <input id="fileInput" type="file" accept="image/jpeg,image/jpg,image/heic,image/heif,image/*" />
-          </label>
-          <img id="localImage" alt="Podgląd lokalny" />
-          <div id="fileResult" class="result">Nie wybrano pliku.</div>
-        </article>
-      </div>
-
-      <section class="reveal">
-        <h2>To była symulacja początku ataku</h2>
-        <p>Nic nie zostało wysłane. Ale w prawdziwym ataku podobna strona mogłaby namawiać do instalacji aplikacji, podania hasła albo nadania groźnych uprawnień.</p>
-        <ul>
-          <li>Nie klikaj pod presją czasu.</li>
-          <li>Sprawdzaj adres strony.</li>
-          <li>Czytaj komunikaty o zgodach.</li>
-          <li>Nie pokazuj publicznie zdjęć z metadanymi lokalizacji.</li>
-          <li>Zgłaszaj podejrzane linki do IT.</li>
-        </ul>
-      </section>
-    </section>
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
-  <script src="app.js?v=exif-robust-20260529"></script>
-</body>
-</html>
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Witam na audycie bezpieczeństwa</title><link rel="stylesheet" href="assets/css/style.css"></head><body>
+<main class="wrap">
+<section class="hero">
+  <div>
+    <div class="kicker">Witam na audycie bezpieczeństwa</div>
+    <h1>Cyberzagrożenia w praktyce</h1>
+    <p class="lead">Nazywam się <strong>Przemysław Leszczyński</strong> i chciałbym pokazać Wam, z jakimi zagrożeniami możemy spotkać się aktualnie w sieci oraz na co zwracać szczególną uwagę.</p>
+    <div class="warning"><strong>Najważniejsza zasada na początek:</strong><br>Nie wchodzimy w podejrzane linki. Nie skanujemy przypadkowych kodów QR. Nie klikamy zgód tylko dlatego, że przycisk jest zielony i wygląda niewinnie.</div>
+    <p class="lead">Za chwilę zrobimy kontrolowany przykład: zeskanuj kod QR, aby przejść dalej do części praktycznej. W prawdziwym ataku taki sam kod mógłby prowadzić do fałszywego logowania, płatności albo strony wyłudzającej zgody.</p>
+  </div>
+  <div class="qrbox">
+    <img src="assets/img/qr-start.png" alt="Kod QR do dalszej części szkolenia">
+    <div class="url">Zeskanuj, aby przejść dalej</div>
+    <a class="btn secondary" style="margin-top:1rem" href="start.html">Awaryjny link dla prowadzącego</a>
+  </div>
+</section>
+</main>
+<div class="footer"><div class="wrap">Materiały szkoleniowe — audyt bezpieczeństwa. Wersja: <span data-version></span></div></div><script src="assets/js/app.js"></script></body></html>
